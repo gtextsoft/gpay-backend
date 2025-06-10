@@ -71,6 +71,7 @@ const userReg = async (req, res) => {
         password: hashedPassword,
         verificationToken,
         verificationTokenExpiresAt,
+        kyc: {}, 
       });
       await user.save();
 
@@ -164,6 +165,7 @@ const businessReg = async (req, res) => {
         password: hashedPassword,
         verificationToken,
         verificationTokenExpiresAt,
+        businesskyc: {}, 
       });
       await user.save();
 
