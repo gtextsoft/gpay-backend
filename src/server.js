@@ -13,6 +13,7 @@ import bodyParser from "body-parser";
 import colors from "colors";
 import Userrouter from "./routes/userRoutes.js";
 import Kycrouter from "./routes/kycRoutes.js";
+import BusKycrouter from "./routes/busKycRoutes.js";
 import Adminrouter from "./routes/adminRoutes.js";
 // import Contactrouter from "./routes/contactRoutes.js";
 // import Notificationrouter from "./routes/notificationRoutes.js";
@@ -111,6 +112,7 @@ app.use((err, req, res, next) => {
 // user base routes
 app.use("/user", Userrouter);
 app.use("/api/kyc", Kycrouter);
+app.use("/api/kyc/bus", BusKycrouter);
 app.use("/admin", Adminrouter);
 // app.use("/contact", Contactrouter);
 // app.use("/api", Notificationrouter);

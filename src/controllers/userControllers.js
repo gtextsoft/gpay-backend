@@ -63,7 +63,7 @@ const userReg = async (req, res) => {
 
       // Create a new user
       user = new User({
-        role: 'individual',
+        role: "individual",
         username,
         lastname,
         email,
@@ -131,7 +131,7 @@ const businessReg = async (req, res) => {
     } else {
       // Check if user username already exists
       // user = await User.findOne({ username: busName });
-      user = await User.findOne({  busName: busName });
+      user = await User.findOne({ busName: busName });
       if (user) {
         return res.status(httpStatus.CONFLICT).json({
           status: "error",
@@ -154,7 +154,7 @@ const businessReg = async (req, res) => {
 
       // Create a new user
       user = new User({
-        role: 'business',
+        role: "business",
         busName, // maps to username field
         busLastName, // maps to lastname field
         email,
@@ -433,68 +433,135 @@ const resetPassword = async (req, res) => {
 };
 
 // Update one user profile by username
+// const updateUserProfile = async (req, res) => {
+//   const { username } = req.params;
+//   console.log("Profile update route hit for username:", username);
+
+//   // Extract fields from the request body
+//   const {
+//     phoneNumber,
+//     gender,
+//     dateOfBirth,
+//     maritalStatus,
+//     employmentStatus,
+//     city,
+//     state,
+//     country,
+//   } = req.body;
+
+//   // let profilePictureUrl = req.file
+//   //   ? `http://localhost:4000/uploads/${req.file.filename}`
+//   //   : undefined; // Only update if a file is uploaded
+
+//   // Get Cloudinary URL instead of local storage
+//   let profilePictureUrl = req.file ? req.file.path : undefined;
+
+//   // Build the update object only with fields that are provided
+//   const updateData = {
+//     ...(phoneNumber && { phoneNumber }),
+//     ...(gender && { gender }),
+//     ...(dateOfBirth && { dateOfBirth }),
+//     ...(maritalStatus && { maritalStatus }),
+//     ...(employmentStatus && { employmentStatus }),
+//     ...(city && { city }),
+//     ...(state && { state }),
+//     ...(country && { country }),
+//     ...(profilePictureUrl && { profilePicture: profilePictureUrl }),
+//   };
+
+//   try {
+//     // Update user data in the database
+//     const updatedUser = await User.findOneAndUpdate(
+//       { username },
+//       { $set: updateData }, // Use `$set` to update only provided fields
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!updatedUser) {
+//       return res
+//         .status(404)
+//         .json({ status: "error", message: "User not found" });
+//     }
+//     console.log("Received File:", req.file);
+//     console.log("Cloudinary Uploaded File:", req.file);
+
+//     // console.log(
+//     //   "Stored at:",
+//     //   `http://localhost:4000/uploads/${req.file?.filename}`
+//     // );
+
+//     res.status(200).json({
+//       status: "success",
+//       message: "Profile updated successfully",
+//       data: updatedUser,
+//       profilePictureUrl, // Include the full profile picture URL in the response
+//     });
+//   } catch (error) {
+//     console.error("Error updating profile:", error);
+//     res.status(500).json({ status: "error", message: "Internal server error" });
+//   }
+// };
+
+// Fetch user profile by username
+// const getUserProfile = async (req, res) => {
+//   try {
+//     const { currentUsername } = req.params;
+//     const user = await User.findOne({ username: currentUsername });
+
+//     if (!user) {
+//       return res.status(httpStatus.NOT_FOUND).json({
+//         status: "error",
+//         message: "User not found",
+//       });
+//     }
+
+//     res.status(httpStatus.OK).json({
+//       status: "success",
+//       data: user,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching profile:", error);
+//     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+//       status: "error",
+//       message: "Failed to fetch profile data.",
+//     });
+//   }
+// };
+
 const updateUserProfile = async (req, res) => {
   const { username } = req.params;
   console.log("Profile update route hit for username:", username);
 
-  // Extract fields from the request body
-  const {
-    phoneNumber,
-    gender,
-    dateOfBirth,
-    maritalStatus,
-    employmentStatus,
-    city,
-    state,
-    country,
-  } = req.body;
+  const { phoneNumber, gender, maritalStatus } = req.body;
 
-  // let profilePictureUrl = req.file
-  //   ? `http://localhost:4000/uploads/${req.file.filename}`
-  //   : undefined; // Only update if a file is uploaded
-
-  // Get Cloudinary URL instead of local storage
   let profilePictureUrl = req.file ? req.file.path : undefined;
 
-  // Build the update object only with fields that are provided
   const updateData = {
     ...(phoneNumber && { phoneNumber }),
     ...(gender && { gender }),
-    ...(dateOfBirth && { dateOfBirth }),
     ...(maritalStatus && { maritalStatus }),
-    ...(employmentStatus && { employmentStatus }),
-    ...(city && { city }),
-    ...(state && { state }),
-    ...(country && { country }),
     ...(profilePictureUrl && { profilePicture: profilePictureUrl }),
   };
 
   try {
-    // Update user data in the database
     const updatedUser = await User.findOneAndUpdate(
       { username },
-      { $set: updateData }, // Use `$set` to update only provided fields
+      { $set: updateData },
       { new: true, runValidators: true }
     );
 
     if (!updatedUser) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "User not found" });
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
     }
-    console.log("Received File:", req.file);
-    console.log("Cloudinary Uploaded File:", req.file);
-
-    // console.log(
-    //   "Stored at:",
-    //   `http://localhost:4000/uploads/${req.file?.filename}`
-    // );
 
     res.status(200).json({
       status: "success",
       message: "Profile updated successfully",
       data: updatedUser,
-      profilePictureUrl, // Include the full profile picture URL in the response
+      profilePictureUrl,
     });
   } catch (error) {
     console.error("Error updating profile:", error);
@@ -502,26 +569,120 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-// Fetch user profile by username
 const getUserProfile = async (req, res) => {
   try {
     const { currentUsername } = req.params;
-    const user = await User.findOne({ username: currentUsername });
 
+    const user = await User.findOne({ username: currentUsername }).lean(); // Get plain object
     if (!user) {
-      return res.status(httpStatus.NOT_FOUND).json({
+      return res.status(404).json({
         status: "error",
         message: "User not found",
       });
     }
 
-    res.status(httpStatus.OK).json({
+    // Merge KYC data if available
+    const kycData = user.kyc || {};
+    const mergedProfile = {
+      username: user.username,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      gender: user.gender,
+      maritalStatus: user.maritalStatus,
+      dateOfBirth: kycData.dateOfBirth || "", // From KYC
+      employmentStatus: kycData.employmentStatus || "",
+      city: kycData.city || "",
+      state: kycData.state || "",
+      country: kycData.country || "",
+      profilePictureUrl: user.profilePicture || "",
+    };
+
+    res.status(200).json({
       status: "success",
-      data: user,
+      data: mergedProfile,
     });
   } catch (error) {
     console.error("Error fetching profile:", error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+    res.status(500).json({
+      status: "error",
+      message: "Failed to fetch profile data.",
+    });
+  }
+};
+
+const updateUserBusProfile = async (req, res) => {
+  const { busName } = req.params;
+  console.log("Profile update route hit for username:", busName);
+
+  const { phoneNumber, gender } = req.body;
+
+  let profilePictureUrl = req.file ? req.file.path : undefined;
+
+  const updateData = {
+    ...(phoneNumber && { phoneNumber }),
+    ...(gender && { gender }),
+    ...(profilePictureUrl && { profilePicture: profilePictureUrl }),
+  };
+
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { busName },
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        status: "error",
+        message: "Business not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Profile business updated successfully",
+      data: updatedUser,
+      profilePictureUrl,
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+};
+
+const getUserBusProfile = async (req, res) => {
+  try {
+    const { currentUsername } = req.params;
+
+    const user = await User.findOne({ busName: currentUsername }).lean(); // Get plain object
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    // Merge KYC data if available
+    const kycData = user.businesskyc || {};
+    const mergedProfile = {
+      username: user.username || user.busName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      gender: user.gender,
+      dateEstablished: kycData.dateEstablished || "", // From KYC
+      city: kycData.city || "",
+      state: kycData.state || "",
+      country: kycData.country || "",
+      profilePictureUrl: user.profilePicture || "",
+    };
+
+    res.status(200).json({
+      status: "success",
+      data: mergedProfile,
+    });
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({
       status: "error",
       message: "Failed to fetch profile data.",
     });
@@ -551,10 +712,38 @@ const getUsers = async (req, res) => {
 };
 
 // Fetch one user by username
+// const getUser = async (req, res) => {
+//   try {
+//     const { username } = req.params; // Extract username from URL
+//     const user = await User.findOne({ username });
+
+//     if (!user) {
+//       return res.status(404).json({
+//         status: "error",
+//         message: "User not found",
+//       });
+//     }
+
+//     res.status(200).json({
+//       status: "success",
+//       data: user,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching profile:", error);
+//     res.status(500).json({
+//       status: "error",
+//       message: "Failed to fetch profile data.",
+//     });
+//   }
+// };
+
 const getUser = async (req, res) => {
   try {
-    const { username } = req.params; // Extract username from URL
-    const user = await User.findOne({ username });
+    const { identifier } = req.params; // can be username or busName
+
+    const user = await User.findOne({
+      $or: [{ username: identifier }, { busName: identifier }],
+    });
 
     if (!user) {
       return res.status(404).json({
@@ -565,7 +754,7 @@ const getUser = async (req, res) => {
 
     res.status(200).json({
       status: "success",
-      data: user,
+      userData: user,
     });
   } catch (error) {
     console.error("Error fetching profile:", error);
@@ -575,6 +764,7 @@ const getUser = async (req, res) => {
     });
   }
 };
+
 
 // Update one user by id
 const updateUser = async (req, res) => {
@@ -611,4 +801,6 @@ export {
   requestPasswordReset,
   getUserProfile,
   resetPassword,
+  getUserBusProfile,
+  updateUserBusProfile,
 };
