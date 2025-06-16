@@ -2,7 +2,7 @@
 
 // export const saveKycStep = async (req, res) => {
 //   const { step } = req.params;
-//   const userId = req.user.id; // Ensure authentication middleware adds this
+//   const userId = req.user._id; // Ensure authentication middleware adds this
 
 //   try {
 //     const user = await User.findById(userId);
@@ -45,7 +45,7 @@ import User from "../models/userModel.js";
 
 export const saveKycStep = async (req, res) => {
   const { step } = req.params;
-  const userId = req.user.id;
+  const userId = req.user._id;
 
   try {
     const user = await User.findById(userId);

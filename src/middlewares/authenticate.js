@@ -82,7 +82,13 @@ export const authenticateUser = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach decoded payload (should include user ID and role)
+    // req.user = decoded; // Attach decoded payload (should include user ID and role)
+
+    req.user = {
+      _id: decoded.id,         // add this line
+      email: decoded.email,
+      role: decoded.role,
+    };
 
     next();
   } catch (error) {

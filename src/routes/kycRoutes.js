@@ -19,7 +19,7 @@ router.post(
       console.log("req.files:", req.files);
       console.log("Content-Type:", req.headers["content-type"]);
 
-      const userId = req.user.id;
+      const userId = req.user._id;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -144,7 +144,7 @@ router.post(
 
 router.get("/status", authenticateUser, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const kyc = user.kyc || {};

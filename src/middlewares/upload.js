@@ -41,6 +41,15 @@ const kycBusStorage = new CloudinaryStorage({
   },
 });
 
+const kycSubBusStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "gpayBusinessSubKyc",
+    allowed_formats: ["pdf", "doc", "docx", "png", "jpg", "jpeg"], // Restrict formats
+    public_id: (req, file) => Date.now() + "-" + file.originalname,
+  },
+});
+
 // Cloudinary Storage for Documents (PDFs, Docs, etc.)
 const documentStorage = new CloudinaryStorage({
   cloudinary,
@@ -66,6 +75,7 @@ const uploadDocument = multer({ storage: documentStorage });
 const uploadProperty = multer({ storage: propertyStorage });
 const uploadKyc = multer({ storage: kycStorage });
 const uploadBusKyc = multer({ storage: kycBusStorage });
+const uploadSubBusKyc = multer({ storage: kycSubBusStorage });
 
-export { upload, uploadDocument, uploadProperty, uploadKyc, uploadBusKyc};
+export { upload, uploadDocument, uploadProperty, uploadKyc, uploadBusKyc, uploadSubBusKyc};
 

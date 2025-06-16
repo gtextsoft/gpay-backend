@@ -194,18 +194,117 @@ const businessReg = async (req, res) => {
 };
 
 //user login controller
+// const userLogin = async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     // Checking if the user exists
+//     let userExists = await User.findOne({ email });
+
+//     if (!userExists) {
+//       return res
+//         .status(404)
+//         .json({ message: responseMessages.invalidCredentials });
+//     }
+
+//     // Check if the account is verified
+//     if (!userExists.isVerified) {
+//       return res.status(403).json({
+//         message:
+//           "Email not verified. Please check your email for the verification code.",
+//       });
+//     }
+
+//     // Checking if password is correct
+//     const confirmedPassword = await bcrypt.compare(
+//       password,
+//       userExists.password
+//     );
+
+//     if (!confirmedPassword) {
+//       return res
+//         .status(401)
+//         .json({ message: responseMessages.invalidCredentials });
+//     }
+
+//     // Generate a JWT token
+//     const token = jwt.sign(
+//       { id: userExists._id, email: userExists.email, role: userExists.role },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "5h" }
+//     );
+
+//     // res.cookie("token", token, {
+//     //   httpOnly: true,
+//     //   secure: process.env.NODE_ENV === "production",
+//     //   sameSite: "Strict",
+//     //   maxAge: 5 * 60 * 60 * 1000, // 5 hours
+//     // });
+
+//     // Send success message if credentials are correct
+//     res.status(200).json({
+//       message: responseMessages.loginSuccess,
+//       userData: userExists,
+//       authToken: token,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Server error." });
+//   }
+// };
+
 const userLogin = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     // Checking if the user exists
     let userExists = await User.findOne({ email });
-
     if (!userExists) {
+      const allUsers = await User.find({ "subAccounts.subEmail": email });
+
+      for (let u of allUsers) {
+        const sub = u.subAccounts.find(sa => sa.subEmail === email);
+        if (sub) {
+          const passwordMatch = await bcrypt.compare(password, sub.subPass);
+
+          if (!passwordMatch) {
+            return res
+              .status(401)
+              .json({ message: "Invalid email or password." });
+          }
+
+          const token = jwt.sign(
+            {
+              id: u._id,
+              email: sub.subEmail,
+              role: "subaccount",
+              subId: sub.subId,
+              subName: sub.subName,
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "5h" }
+          );
+
+          return res.status(200).json({
+            message: "Sub-account login successful",
+            userData: sub,
+            authToken: token,
+          });
+        }
+      }
+
+      // Not found in subAccounts either
       return res
         .status(404)
-        .json({ message: responseMessages.invalidCredentials });
+        .json({ message: "Invalid email or password." });
     }
+
+
+    // if (!userExists) {
+    //   return res
+    //     .status(404)
+    //     .json({ message: responseMessages.invalidCredentials });
+    // }
 
     // Check if the account is verified
     if (!userExists.isVerified) {
@@ -234,12 +333,6 @@ const userLogin = async (req, res) => {
       { expiresIn: "5h" }
     );
 
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production",
-    //   sameSite: "Strict",
-    //   maxAge: 5 * 60 * 60 * 1000, // 5 hours
-    // });
 
     // Send success message if credentials are correct
     res.status(200).json({
@@ -300,10 +393,66 @@ const verifyEmail = async (req, res) => {
 };
 
 // Request user Password Reset
+// const requestPasswordReset = async (req, res) => {
+//   const { email } = req.body;
+
+//   try {
+//     const user = await User.findOne({ email });
+
+//     if (!user) {
+//       return res.status(404).json({
+//         status: "error",
+//         message: "User not found with this email.",
+//       });
+//     }
+
+//     // Generate reset token
+//     const resetToken = crypto.randomBytes(32).toString("hex");
+//     const resetTokenHash = crypto
+//       .createHash("sha256")
+//       .update(resetToken)
+//       .digest("hex");
+
+//     user.passwordResetToken = resetTokenHash;
+//     // user.passwordResetExpires = Date.now() + 15 * 60 * 1000; // 15 min expiration
+//     user.passwordResetExpires = Date.now() + 24 * 60 * 60 * 1000; // 1 day expiration
+
+//     await user.save();
+//     console.log("Reset token stored in DB:", user.passwordResetToken);
+
+//     // Send password reset email
+//     const resetLink = `https://www.gvestinvestmentcapital.com/reset-password?token=${resetToken}&email=${email}`;
+//     // const resetLink = `http://localhost:3000/reset-password?token=${resetToken}&email=${email}`;
+//     await sendPasswordResetEmail(user.email, resetLink);
+
+//     res.status(200).json({
+//       status: "success",
+//       message: "Password reset link has been sent to your email.",
+//     });
+//   } catch (error) {
+//     console.error("Error requesting password reset:", error);
+//     res.status(500).json({ status: "error", message: "Internal server error" });
+//   }
+// };
+
 const requestPasswordReset = async (req, res) => {
   const { email } = req.body;
 
   try {
+    // ✅ First: check if it's a sub-account
+    const allUsers = await User.find({ "subAccounts.subEmail": email });
+
+    for (let u of allUsers) {
+      const sub = u.subAccounts.find(sa => sa.subEmail === email);
+      if (sub) {
+        return res.status(403).json({
+          message:
+            "Sub-account passwords cannot be reset. Please contact your business admin.",
+        });
+      }
+    }
+
+    // ✅ Then: check main user
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -321,26 +470,25 @@ const requestPasswordReset = async (req, res) => {
       .digest("hex");
 
     user.passwordResetToken = resetTokenHash;
-    // user.passwordResetExpires = Date.now() + 15 * 60 * 1000; // 15 min expiration
     user.passwordResetExpires = Date.now() + 24 * 60 * 60 * 1000; // 1 day expiration
 
     await user.save();
-    console.log("Reset token stored in DB:", user.passwordResetToken);
 
-    // Send password reset email
+    // Send reset email
     const resetLink = `https://www.gvestinvestmentcapital.com/reset-password?token=${resetToken}&email=${email}`;
-    // const resetLink = `http://localhost:3000/reset-password?token=${resetToken}&email=${email}`;
     await sendPasswordResetEmail(user.email, resetLink);
 
-    res.status(200).json({
+    return res.status(200).json({
       status: "success",
       message: "Password reset link has been sent to your email.",
     });
+
   } catch (error) {
     console.error("Error requesting password reset:", error);
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 };
+
 
 // Reset user password
 const resetPassword = async (req, res) => {

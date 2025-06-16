@@ -1,12 +1,12 @@
 import express from "express";
-import { uploadBusKyc } from "../middlewares/upload.js";
+import { uploadBusKyc, uploadSubBusKyc } from "../middlewares/upload.js";
 import {
   authenticateUser,
   authenticateAdmin,
 } from "../middlewares/authenticate.js";
 import User from "../models/userModel.js";
 import { sendRejectionEmail } from "../services/emailService.js";
-
+import bcrypt from "bcryptjs";
 const router = express.Router();
 
 router.post(
@@ -23,7 +23,7 @@ router.post(
       console.log("req.files:", req.files);
       console.log("Content-Type:", req.headers["content-type"]);
 
-      const userId = req.user.id;
+      const userId = req.user._id;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -138,9 +138,76 @@ router.post(
   }
 );
 
+router.post(
+  "/sub/submit",
+  authenticateUser,
+  uploadSubBusKyc.fields([{ name: "proofOfAddress" }]),
+  async (req, res) => {
+    try {
+      const businessId = req.user._id; // from auth middleware
+      const {
+        subName,
+        businessType,
+        industry,
+        idType,
+        idNum,
+        idCountry,
+        idLevel,
+        subPhone,
+        subEmail,
+        address,
+        city,
+        state,
+        country,
+        postal,
+        subPass,
+      } = req.body;
+
+      const proofOfAddress = req.files?.proofOfAddress?.[0]?.path || null;
+
+      const hashedSubPass = await bcrypt.hash(subPass, 10); // Hash the sub account password
+
+      const newSub = {
+        subId: businessId,
+        subName,
+        businessType,
+        industry,
+        idType,
+        idNum,
+        idCountry,
+        idLevel,
+        subPhone,
+        subEmail,
+        subPass: hashedSubPass, // Save hashed password
+        address,
+        city,
+        state,
+        country,
+        postal,
+        proofOfAddress,
+      };
+
+      const user = await User.findById(businessId);
+      if (!user || user.role !== "business") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      user.subAccounts.push(newSub);
+      await user.save();
+
+      res
+        .status(200)
+        .json({ message: "Sub account created", subAccount: newSub });
+    } catch (err) {
+      console.error("SubAccount Error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
 router.get("/status", authenticateUser, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const businesskyc = user.businesskyc || {};
