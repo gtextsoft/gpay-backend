@@ -1,26 +1,55 @@
 import User from "../models/userModel.js";
 
 // Post a new notification for a user
+// const postNotification = async (req, res) => {
+//   try {
+//     const { username, update, title, description } = req.body;
+
+//     const user = await User.findOne({ username });
+
+//     if (!user) return res.status(404).json({ message: "User not found" });
+
+//     // Add notification to the array
+//     // const newNotification = { update, title, description };
+//     const newNotification = { 
+//       update, 
+//       title, 
+//       description, 
+//       read: false   // Ensure it's unread when created
+//     };
+    
+//     user.notificationInvestments.push(newNotification);
+
+//     await user.save();
+//     res.status(201).json({
+//       message: "Notification added successfully",
+//       notification: newNotification,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+// Send notification to a single user using email
 const postNotification = async (req, res) => {
   try {
-    const { username, update, title, description } = req.body;
+    const { email, update, title, description } = req.body;
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Add notification to the array
-    // const newNotification = { update, title, description };
-    const newNotification = { 
-      update, 
-      title, 
-      description, 
-      read: false   // Ensure it's unread when created
+    const newNotification = {
+      update,
+      title,
+      description,
+      read: false,
+      date: new Date(),
     };
-    
-    user.notificationInvestments.push(newNotification);
 
+    user.notificationInvestments.push(newNotification);
     await user.save();
+
     res.status(201).json({
       message: "Notification added successfully",
       notification: newNotification,
@@ -30,9 +59,12 @@ const postNotification = async (req, res) => {
   }
 };
 
+
 // Post notification to ALL users
 const postNotificationToAllUsers = async (req, res) => {
   try {
+    console.log("Received body:", req.body);
+
     const { update, title, description } = req.body;
 
     const users = await User.find({});
@@ -62,16 +94,33 @@ const postNotificationToAllUsers = async (req, res) => {
       message: "Notification sent to all users successfully",
     });
   } catch (error) {
+    console.error("Internal Server Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
 // Get all notifications for a user
+// const getNotification = async (req, res) => {
+//   try {
+//     const { username } = req.params;
+
+//     const user = await User.findOne({ username });
+
+//     if (!user) return res.status(404).json({ message: "User not found" });
+
+//     res.status(200).json({ notifications: user.notificationInvestments });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+//Get all users notifications
+
 const getNotification = async (req, res) => {
   try {
-    const { username } = req.params;
+    const { email } = req.params;
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -81,7 +130,6 @@ const getNotification = async (req, res) => {
   }
 };
 
-//Get all users notifications
 const getNotifications = async (req, res) => {
   try {
     const users = await User.find({}, "username notificationInvestments");
@@ -160,20 +208,39 @@ const deleteNotification = async (req, res) => {
 };
 
 // Mark all notifications as read for a user
+// const markNotificationsAsRead = async (req, res) => {
+//   const { username } = req.params;
+//   const user = await User.findOne({ username });
+
+//   if (!user) return res.status(404).json({ message: "User not found" });
+
+//   user.notificationInvestments.forEach(notification => {
+//     notification.read = true;  // ✅ This works with the schema fix
+//   });
+
+//   await user.save();
+//   res.status(200).json({ message: "All notifications marked as read" });
+// };
 
 const markNotificationsAsRead = async (req, res) => {
-  const { username } = req.params;
-  const user = await User.findOne({ username });
+  try {
+    const { email } = req.params;
 
-  if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await User.findOne({ email: email.toLowerCase() });
 
-  user.notificationInvestments.forEach(notification => {
-    notification.read = true;  // ✅ This works with the schema fix
-  });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-  await user.save();
-  res.status(200).json({ message: "All notifications marked as read" });
+    user.notificationInvestments.forEach((notif) => {
+      notif.read = true;
+    });
+
+    await user.save();
+    res.status(200).json({ message: "Notifications marked as read." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
+
 
 
 export {

@@ -79,12 +79,16 @@ const adminLogin = async (req, res) => {
     //    return res.status(400).json({ status: "error", message: "Invalid credentials" });
     //  }
 
-    if (!adminExists) {
-      res.status(404).json({
-        message: responseMessages.invalidCredentials,
-      });
-    }
+    // if (!adminExists) {
+    //   res.status(404).json({
+    //     message: responseMessages.invalidCredentials,
+    //   });
+    // }
 
+    if (!adminExists) {
+      return res.status(404).json({ message: responseMessages.invalidCredentials });
+    }
+    
     //checking if password is correct
     const confirmedPassword = await bcrypt.compare(
       password,

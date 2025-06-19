@@ -194,64 +194,6 @@ const businessReg = async (req, res) => {
 };
 
 //user login controller
-// const userLogin = async (req, res) => {
-//   const { email, password } = req.body;
-
-//   try {
-//     // Checking if the user exists
-//     let userExists = await User.findOne({ email });
-
-//     if (!userExists) {
-//       return res
-//         .status(404)
-//         .json({ message: responseMessages.invalidCredentials });
-//     }
-
-//     // Check if the account is verified
-//     if (!userExists.isVerified) {
-//       return res.status(403).json({
-//         message:
-//           "Email not verified. Please check your email for the verification code.",
-//       });
-//     }
-
-//     // Checking if password is correct
-//     const confirmedPassword = await bcrypt.compare(
-//       password,
-//       userExists.password
-//     );
-
-//     if (!confirmedPassword) {
-//       return res
-//         .status(401)
-//         .json({ message: responseMessages.invalidCredentials });
-//     }
-
-//     // Generate a JWT token
-//     const token = jwt.sign(
-//       { id: userExists._id, email: userExists.email, role: userExists.role },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "5h" }
-//     );
-
-//     // res.cookie("token", token, {
-//     //   httpOnly: true,
-//     //   secure: process.env.NODE_ENV === "production",
-//     //   sameSite: "Strict",
-//     //   maxAge: 5 * 60 * 60 * 1000, // 5 hours
-//     // });
-
-//     // Send success message if credentials are correct
-//     res.status(200).json({
-//       message: responseMessages.loginSuccess,
-//       userData: userExists,
-//       authToken: token,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error." });
-//   }
-// };
 
 const userLogin = async (req, res) => {
   const { email, password } = req.body;
@@ -391,49 +333,6 @@ const verifyEmail = async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 };
-
-// Request user Password Reset
-// const requestPasswordReset = async (req, res) => {
-//   const { email } = req.body;
-
-//   try {
-//     const user = await User.findOne({ email });
-
-//     if (!user) {
-//       return res.status(404).json({
-//         status: "error",
-//         message: "User not found with this email.",
-//       });
-//     }
-
-//     // Generate reset token
-//     const resetToken = crypto.randomBytes(32).toString("hex");
-//     const resetTokenHash = crypto
-//       .createHash("sha256")
-//       .update(resetToken)
-//       .digest("hex");
-
-//     user.passwordResetToken = resetTokenHash;
-//     // user.passwordResetExpires = Date.now() + 15 * 60 * 1000; // 15 min expiration
-//     user.passwordResetExpires = Date.now() + 24 * 60 * 60 * 1000; // 1 day expiration
-
-//     await user.save();
-//     console.log("Reset token stored in DB:", user.passwordResetToken);
-
-//     // Send password reset email
-//     const resetLink = `https://www.gvestinvestmentcapital.com/reset-password?token=${resetToken}&email=${email}`;
-//     // const resetLink = `http://localhost:3000/reset-password?token=${resetToken}&email=${email}`;
-//     await sendPasswordResetEmail(user.email, resetLink);
-
-//     res.status(200).json({
-//       status: "success",
-//       message: "Password reset link has been sent to your email.",
-//     });
-//   } catch (error) {
-//     console.error("Error requesting password reset:", error);
-//     res.status(500).json({ status: "error", message: "Internal server error" });
-//   }
-// };
 
 const requestPasswordReset = async (req, res) => {
   const { email } = req.body;
@@ -839,6 +738,48 @@ const getUserBusProfile = async (req, res) => {
   }
 };
 
+//Get all individual users
+
+export const getAllIndividualUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: "individual" })
+      .select("-password") // omit password
+      .sort({ createdAt: -1 }); // latest first
+
+    res.status(httpStatus.OK).json({
+      message: { msg: "All users details" },
+      userData: users,
+    });
+  } catch (error) {
+    console.error("Error fetching individual users:", error.message);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+      status: "error",
+      message: "Failed to fetch individual users",
+    });
+  }
+};
+
+//Get all business users
+
+export const getAllBusinessUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: "business" })
+      .select("-password") // omit password
+      .sort({ createdAt: -1 }); // latest first
+
+    res.status(httpStatus.OK).json({
+      message: { msg: "All business details" },
+      userData: users,
+    });
+  } catch (error) {
+    console.error("Error fetching business users:", error.message);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+      status: "error",
+      message: "Failed to fetch businss users",
+    });
+  }
+};
+
 // Get all users
 const getUsers = async (req, res) => {
   try {
@@ -860,32 +801,6 @@ const getUsers = async (req, res) => {
     });
   }
 };
-
-// Fetch one user by username
-// const getUser = async (req, res) => {
-//   try {
-//     const { username } = req.params; // Extract username from URL
-//     const user = await User.findOne({ username });
-
-//     if (!user) {
-//       return res.status(404).json({
-//         status: "error",
-//         message: "User not found",
-//       });
-//     }
-
-//     res.status(200).json({
-//       status: "success",
-//       data: user,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching profile:", error);
-//     res.status(500).json({
-//       status: "error",
-//       message: "Failed to fetch profile data.",
-//     });
-//   }
-// };
 
 const getUser = async (req, res) => {
   try {
@@ -914,7 +829,6 @@ const getUser = async (req, res) => {
     });
   }
 };
-
 
 // Update one user by id
 const updateUser = async (req, res) => {

@@ -55,3 +55,4 @@ export const getKycDetailsForAdmin = async (req, res) => {
       .json({ message: "Failed to fetch KYC data", error: err.message });
   }
 };
+

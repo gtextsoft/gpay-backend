@@ -10,6 +10,16 @@ import {
   getAdmin,
 } from "../controllers/adminControllers.js";
 
+import { getUsers, deleteUser, getAllIndividualUsers, getAllBusinessUsers } from "../controllers/userControllers.js";
+
+import {
+  postNotification,
+  getNotifications,
+  getNotification,
+  updateNotification,
+  deleteNotification,
+} from "../controllers/notificationControllers.js";
+
 const router = express.Router();
 
 //Admins Routes
@@ -21,8 +31,10 @@ router.route("/delete-admin/:id").delete(authenticateAdmin, deleteAdmin);
 router.route("/admin/:id").put(authenticateAdmin, updateAdmin);
 
 //Users Routes
-// router.route("/all-users").get(authenticateAdmin, getUsers);
-// router.route("/delete-user/:id").delete(authenticateAdmin, deleteUser);
+router.route("/all-users").get(authenticateAdmin, getUsers);
+router.route("/all-individual-users").get(authenticateAdmin, getAllIndividualUsers);
+router.route("/all-business-users").get(authenticateAdmin, getAllBusinessUsers);
+router.route("/delete-user/:id").delete(authenticateAdmin, deleteUser);
 
 // //Document Routes
 // router.post("/document", uploadDocument.single("file"), postAdminDocument);
@@ -58,9 +70,9 @@ router.route("/admin/:id").put(authenticateAdmin, updateAdmin);
 
 // //Notification Routes
 
-// router.post("/admin-notification",  postNotification);
-// router.get("/notification/:username",  getNotification);
-// router.get("/notification",  getNotifications);
+router.post("/admin-notification",  postNotification);
+router.get("/notification/:username",  getNotification);
+router.get("/notification",  getNotifications);
 
 
 

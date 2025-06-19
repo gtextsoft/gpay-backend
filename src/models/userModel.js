@@ -59,56 +59,7 @@ const UserSchema = new mongoose.Schema(
         return this.role === "business";
       },
     },
-    // kyc: {
-    //   username: String,
-    //   lastname: String,
-    //   number: { type: String }, // made optional so it doesn't block form saving
-    //   email: String,
-    //   dateOfBirth: { type: Date },
-    //   passportNumber: String,
-    //   passportCountry: String,
-    //   id: String,
-    //   idNum: String,
-    //   idCountry: String,
-    //   bvn: Number,
-    //   country: String,
-    //   state: String,
-    //   city: String,
-    //   address: String,
-    //   postal: Number,
-    //   occupation: String,
-    //   employmentStatus: {
-    //     type: String,
-    //     enum: ["employed", "selfEmployed", "unEmployed", "student"],
-    //   },
-    //   purposeAcc: {
-    //     type: String,
-    //     enum: ["personal", "business", "freelancing"],
-    //   },
-    //   source: {
-    //     type: String,
-    //     enum: ["salary", "business-revenue", "gift", "investment"],
-    //   },
-    //   inflow: Number,
-    //   passportFile: String,
-    //   proofOfAddress: String,
-    //   status: {
-    //     type: String,
-    //     enum: [
-    //       "not_started",
-    //       "in_progress",
-    //       "in_review",
-    //       "approved",
-    //       "rejected",
-    //     ],
-    //     default: "not_started",
-    //   },
-    //   rejectionReason: { type: String, default: "" }, // New field
-    //   type: Object,
-    //   required: function () {
-    //     return this.role === "individual";
-    //   },
-    // },
+
     kyc: {
       type: new mongoose.Schema({
         username: String,
@@ -167,7 +118,7 @@ const UserSchema = new mongoose.Schema(
         return this.role === "business";
       },
     },
-    
+
     subAccounts: {
       type: [SubAccountSchema],
       default: [],
@@ -177,15 +128,22 @@ const UserSchema = new mongoose.Schema(
     transactions: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },
     ],
+    notificationInvestments: [
+      {
+        update: String,
+        title: String,
+        description: String,
+        read: { type: Boolean, default: false }, 
+        date: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
 
 UserSchema.pre("validate", function (next) {
   if (this.role !== "business" && this.subAccounts?.length > 0) {
-    return next(
-      new Error("Only business users can have subaccounts.")
-    );
+    return next(new Error("Only business users can have subaccounts."));
   }
   next();
 });
@@ -194,8 +152,6 @@ const User = mongoose.model("User", UserSchema);
 
 // Export the user model
 export default User;
-
-
 
 // businesskyc: {
 //   type: new mongoose.Schema({

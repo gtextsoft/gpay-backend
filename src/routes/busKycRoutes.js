@@ -7,6 +7,7 @@ import {
 import User from "../models/userModel.js";
 import { sendRejectionEmail } from "../services/emailService.js";
 import bcrypt from "bcryptjs";
+
 const router = express.Router();
 
 router.post(
@@ -138,73 +139,6 @@ router.post(
   }
 );
 
-router.post(
-  "/sub/submit",
-  authenticateUser,
-  uploadSubBusKyc.fields([{ name: "proofOfAddress" }]),
-  async (req, res) => {
-    try {
-      const businessId = req.user._id; // from auth middleware
-      const {
-        subName,
-        businessType,
-        industry,
-        idType,
-        idNum,
-        idCountry,
-        idLevel,
-        subPhone,
-        subEmail,
-        address,
-        city,
-        state,
-        country,
-        postal,
-        subPass,
-      } = req.body;
-
-      const proofOfAddress = req.files?.proofOfAddress?.[0]?.path || null;
-
-      const hashedSubPass = await bcrypt.hash(subPass, 10); // Hash the sub account password
-
-      const newSub = {
-        subId: businessId,
-        subName,
-        businessType,
-        industry,
-        idType,
-        idNum,
-        idCountry,
-        idLevel,
-        subPhone,
-        subEmail,
-        subPass: hashedSubPass, // Save hashed password
-        address,
-        city,
-        state,
-        country,
-        postal,
-        proofOfAddress,
-      };
-
-      const user = await User.findById(businessId);
-      if (!user || user.role !== "business") {
-        return res.status(403).json({ message: "Unauthorized" });
-      }
-
-      user.subAccounts.push(newSub);
-      await user.save();
-
-      res
-        .status(200)
-        .json({ message: "Sub account created", subAccount: newSub });
-    } catch (err) {
-      console.error("SubAccount Error:", err);
-      res.status(500).json({ message: "Server error" });
-    }
-  }
-);
-
 router.get("/status", authenticateUser, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -314,6 +248,75 @@ router.post("/reject/:userId", authenticateAdmin, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// Sub accounts
+router.post(
+  "/sub/submit",
+  authenticateUser,
+  uploadSubBusKyc.fields([{ name: "proofOfAddress" }]),
+  async (req, res) => {
+    try {
+      const businessId = req.user._id; // from auth middleware
+      const {
+        subName,
+        businessType,
+        industry,
+        idType,
+        idNum,
+        idCountry,
+        idLevel,
+        subPhone,
+        subEmail,
+        address,
+        city,
+        state,
+        country,
+        postal,
+        subPass,
+      } = req.body;
+
+      const proofOfAddress = req.files?.proofOfAddress?.[0]?.path || null;
+
+      const hashedSubPass = await bcrypt.hash(subPass, 10); // Hash the sub account password
+
+      const newSub = {
+        subId: businessId,
+        subName,
+        businessType,
+        industry,
+        idType,
+        idNum,
+        idCountry,
+        idLevel,
+        subPhone,
+        subEmail,
+        subPass: hashedSubPass, // Save hashed password
+        address,
+        city,
+        state,
+        country,
+        postal,
+        proofOfAddress,
+      };
+
+      const user = await User.findById(businessId);
+      if (!user || user.role !== "business") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      user.subAccounts.push(newSub);
+      await user.save();
+
+      res
+        .status(200)
+        .json({ message: "Sub account created", subAccount: newSub });
+    } catch (err) {
+      console.error("SubAccount Error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
 
 // /api/kyc/admin/update/:userId
 export default router;

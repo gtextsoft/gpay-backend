@@ -15,6 +15,7 @@ import Userrouter from "./routes/userRoutes.js";
 import Kycrouter from "./routes/kycRoutes.js";
 import BusKycrouter from "./routes/busKycRoutes.js";
 import Adminrouter from "./routes/adminRoutes.js";
+import SubAccountrouter from "./routes/subAccountRoutes.js";
 // import Contactrouter from "./routes/contactRoutes.js";
 import Notificationrouter from "./routes/notificationRoutes.js";
 import { dbConnection } from "./config/dbConnection.js";
@@ -113,9 +114,10 @@ app.use((err, req, res, next) => {
 app.use("/user", Userrouter);
 app.use("/api/kyc", Kycrouter);
 app.use("/api/kyc/bus", BusKycrouter);
+app.use("/api/subaccounts", SubAccountrouter);
 app.use("/admin", Adminrouter);
 // app.use("/contact", Contactrouter);
-// app.use("/api", Notificationrouter);
+app.use("/api", Notificationrouter);
 
 //connecting to the database
 dbConnection()
