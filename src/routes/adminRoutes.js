@@ -28,7 +28,7 @@ router.post("/login", adminLogin);
 router.route("/all-admins").get(authenticateAdmin, getAdmins);
 router.route("/one-admin/:username").get(authenticateAdmin, getAdmin);
 router.route("/delete-admin/:id").delete(authenticateAdmin, deleteAdmin);
-router.route("/admin/:id").put(authenticateAdmin, updateAdmin);
+router.route("/update-admin/:id").put(authenticateAdmin, updateAdmin);
 
 //Users Routes
 router.route("/all-users").get(authenticateAdmin, getUsers);
@@ -72,7 +72,7 @@ router.route("/delete-user/:id").delete(authenticateAdmin, deleteUser);
 
 router.post("/admin-notification",  postNotification);
 router.get("/notification/:username",  getNotification);
-router.get("/notification",  getNotifications);
+router.get("/all-notification",  getNotifications);
 
 
 
