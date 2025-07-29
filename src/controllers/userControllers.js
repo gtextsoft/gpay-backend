@@ -165,7 +165,18 @@ const businessReg = async (req, res) => {
         password: hashedPassword,
         verificationToken,
         verificationTokenExpiresAt,
-        businesskyc: {}, 
+        // businesskyc: {}, 
+        // businesskyc: req.body.businesskyc,
+        businesskyc: {
+          busName,
+          email,
+          regNum: "0",
+          businessType: "freelancing",
+          companySize: "1-10",
+          purposeAcc: "business",
+          source: "business-revenue",
+          status: "not_started",
+        },        
       });
       await user.save();
 
